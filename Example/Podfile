@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '10.0'
+
+target 'RRule_Swift_Example' do
+  pod 'RRule_Swift', :path => '../'
+
+  target 'RRule_Swift_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
