@@ -13,7 +13,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let ruleString = "RRULE:FREQ=MONTHLY;DTSTART=20160404T021000Z;COUNT=5;INTERVAL=2;WKST=MO;BYDAY=MO,TU"
+        let ruleString = "RRULE:FREQ=MONTHLY;COUNT=7;INTERVAL=1;WKST=MO;BYDAY=FR;BYSETPOS=-1"
         let rule = RecurrenceRule(rruleString: ruleString)
         print(rule)
         print(rule?.allOccurrences())
