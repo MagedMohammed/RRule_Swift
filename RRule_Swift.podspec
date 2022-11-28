@@ -8,8 +8,8 @@
 
 Pod::Spec.new do |s|
   s.name             = 'RRule_Swift'
-  s.version          = '1.0.0'
-  s.summary          = 'A short description of RRule_Swift.'
+  s.version          = '0.1.0'
+  s.summary          = 'Swift rrule library for working with recurrence rules of calendar dates.'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -18,7 +18,9 @@ Pod::Spec.new do |s|
 #   * Finally, don't worry about the indent, CocoaPods strips it!
 
   s.description      = <<-DESC
-TODO: Add long description of the pod here.
+  Swift rrule library for working with recurrence rules of calendar dates.
+  RRule_Swift is based on [rrule.js](https://github.com/jkbrzt/rrule).
+
                        DESC
 
   s.homepage         = 'https://github.com/MagedMohammed/RRule_Swift'
