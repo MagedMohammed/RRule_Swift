@@ -29,9 +29,22 @@ public struct RRule {
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
         return dateFormatter
     }()
-
+    
     public static func ruleFromString(_ string: String) -> RecurrenceRule? {
-        let string = string.trimmingCharacters(in: .whitespaces)
+        var recurrenceRule = RecurrenceRule(frequency: .daily)
+        var ruleFrequency: RecurrenceFrequency?
+        
+        if let startDateStr = string.split(separator: " ").first, let ruleKey = startDateStr.split(separator: "=").first, let ruleValue = startDateStr.split(separator: "=").last {
+            if ruleKey == "DTSTART" {
+                if let startDate = dateFormatter.date(from: String(ruleValue)) {
+                    recurrenceRule.startDate = startDate
+                } else if let startDate = realDate(String(ruleValue)) {
+                    recurrenceRule.startDate = startDate
+                }
+            }
+        }
+        
+        let string = string.split(separator: " ").last?.trimmingCharacters(in: .whitespaces) ?? string.trimmingCharacters(in: .whitespaces)
         guard let range = string.range(of: "RRULE:"), range.lowerBound == string.startIndex else {
             return nil
         }
@@ -43,8 +56,6 @@ public struct RRule {
             return rule
         }
 
-        var recurrenceRule = RecurrenceRule(frequency: .daily)
-        var ruleFrequency: RecurrenceFrequency?
         for rule in rules {
             let ruleComponents = rule.components(separatedBy: "=")
             guard ruleComponents.count == 2 else {
