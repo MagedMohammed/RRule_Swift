@@ -8,14 +8,20 @@
 
 import UIKit
 import RRule_Swift
+import EventKit
 
 class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let ruleString = "DTSTART=20221129T030000Z RRULE:INTERVAL=1;FREQ=MONTHLY;COUNT=12;BYDAY=-1TU;WKST=MO;UNTIL=20231031T033000Z"
-        var rule = RecurrenceRule(rruleString: ruleString)
-        print(rule?.allOccurrences())
+        var rule = RecurrenceRule(frequency: .monthly)
+        rule.startDate = Date()
+        rule.recurrenceEnd = EKRecurrenceEnd(occurrenceCount: 12)
+        rule.interval = 1
+        rule.byweekday = [.friday]
+        rule.bysetpos = [-1]
+        print(rule.allOccurrences())
+        print(rule.toRRuleString())
 //        rule = RecurrenceRule(rruleString: "RRULE:INTERVAL=1;FREQ=MONTHLY;COUNT=12;BYDAY=-1TU;WKST=MO;UNTIL=20231031T033000Z;DTSTART=20221129T030000Z")
 //        print(rule?.allOccurrences())
 //        print(rule?.toRRuleString())
