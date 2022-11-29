@@ -228,9 +228,9 @@ public struct RRule {
             }
             return String(setpo)
         })
-        if bysetposStrings.count > 0 {
-            rruleString += "BYSETPOS=\(bysetposStrings.joined(separator: ","));"
-        }
+//        if bysetposStrings.count > 0 {
+//            rruleString += "BYSETPOS=\(bysetposStrings.joined(separator: ","));"
+//        }
 
         let byyeardayStrings = rule.byyearday.compactMap({ (yearday) -> String? in
             guard (-366...366 ~= yearday) && (yearday != 0) else {
@@ -273,7 +273,11 @@ public struct RRule {
         }
 
         let byweekdaySymbols = rule.byweekday.map({ (weekday) -> String in
-            return weekday.toSymbol()
+            if bysetposStrings.count > 0 {
+                return weekday.toSymbol(postion: bysetposStrings.first ?? "")
+            } else {
+                return weekday.toSymbol()
+            }
         })
         if byweekdaySymbols.count > 0 {
             rruleString += "BYDAY=\(byweekdaySymbols.joined(separator: ","));"

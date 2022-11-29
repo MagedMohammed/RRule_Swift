@@ -20,6 +20,18 @@ internal extension EKWeekday {
         case .sunday: return "SU"
         }
     }
+    
+    func toSymbol(postion: String) -> String {
+        switch self {
+        case .monday: return "\(postion)MO"
+        case .tuesday: return "\(postion)TU"
+        case .wednesday: return "\(postion)WE"
+        case .thursday: return "\(postion)TH"
+        case .friday: return "\(postion)FR"
+        case .saturday: return "\(postion)SA"
+        case .sunday: return "\(postion)SU"
+        }
+    }
 
     func toNumberSymbol() -> Int {
         switch self {
