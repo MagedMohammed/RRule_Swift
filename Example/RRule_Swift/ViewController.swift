@@ -15,10 +15,9 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         let ruleString = "DTSTART=20221129T030000Z RRULE:INTERVAL=1;FREQ=MONTHLY;COUNT=12;BYDAY=-1TU;WKST=MO;UNTIL=20231031T033000Z"
         var rule = RecurrenceRule(rruleString: ruleString)
-//        print(rule)
         print(rule?.allOccurrences())
-        rule = RecurrenceRule(rruleString: "RRULE:INTERVAL=1;FREQ=MONTHLY;COUNT=12;BYDAY=-1TU;WKST=MO;UNTIL=20231031T033000Z;DTSTART=20221129T030000Z")
-        print(rule?.allOccurrences())
+//        rule = RecurrenceRule(rruleString: "RRULE:INTERVAL=1;FREQ=MONTHLY;COUNT=12;BYDAY=-1TU;WKST=MO;UNTIL=20231031T033000Z;DTSTART=20221129T030000Z")
+//        print(rule?.allOccurrences())
 //        print(rule?.toRRuleString())
         // Do any additional setup after loading the view, typically from a nib.
     }
