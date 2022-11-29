@@ -17,6 +17,7 @@ class ViewController: UIViewController {
         let rule = RecurrenceRule(rruleString: ruleString)
         print(rule)
         print(rule?.allOccurrences())
+        print(rule?.toRRuleString())
         // Do any additional setup after loading the view, typically from a nib.
     }
 
