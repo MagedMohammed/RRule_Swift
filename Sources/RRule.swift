@@ -29,9 +29,22 @@ public struct RRule {
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
         return dateFormatter
     }()
-
+    
     public static func ruleFromString(_ string: String) -> RecurrenceRule? {
-        let string = string.trimmingCharacters(in: .whitespaces)
+        var recurrenceRule = RecurrenceRule(frequency: .daily)
+        var ruleFrequency: RecurrenceFrequency?
+        
+        if let startDateStr = string.split(separator: " ").first, let ruleKey = startDateStr.split(separator: "=").first, let ruleValue = startDateStr.split(separator: "=").last {
+            if ruleKey == "DTSTART" {
+                if let startDate = dateFormatter.date(from: String(ruleValue)) {
+                    recurrenceRule.startDate = startDate
+                } else if let startDate = realDate(String(ruleValue)) {
+                    recurrenceRule.startDate = startDate
+                }
+            }
+        }
+        
+        let string = string.split(separator: " ").last?.trimmingCharacters(in: .whitespaces) ?? string.trimmingCharacters(in: .whitespaces)
         guard let range = string.range(of: "RRULE:"), range.lowerBound == string.startIndex else {
             return nil
         }
@@ -43,8 +56,6 @@ public struct RRule {
             return rule
         }
 
-        var recurrenceRule = RecurrenceRule(frequency: .daily)
-        var ruleFrequency: RecurrenceFrequency?
         for rule in rules {
             let ruleComponents = rule.components(separatedBy: "=")
             guard ruleComponents.count == 2 else {
@@ -145,10 +156,23 @@ public struct RRule {
             if ruleName == "BYDAY" {
                 // These variables will define the weekdays where the recurrence will be applied.
                 // In the RFC documentation, it is specified as BYDAY, but was renamed to avoid the ambiguity of that argument.
-                let byweekday = ruleValue.components(separatedBy: ",").compactMap({ (string) -> EKWeekday? in
-                    return EKWeekday.weekdayFromSymbol(string)
-                })
-                recurrenceRule.byweekday = byweekday.sorted(by: <)
+                
+                let regex = "^([+-]?\\d{1,5})(MO|TU|WE|TH|FR|SA|SU)$"
+                if ruleFrequency == .monthly && ruleValue.range(of: regex, options: .regularExpression, range: nil, locale: nil) != nil {
+                    guard let pos = Int(ruleValue.components(separatedBy: CharacterSet.letters).joined()) else { continue }
+                    print(pos)
+                    let byweekday = ruleValue.components(separatedBy: ",").compactMap({ (string) -> EKWeekday? in
+                        let daySympole = string.filter { $0.isLetter || "A"..."Z" ~= $0 }
+                        return EKWeekday.weekdayFromSymbol(daySympole)
+                    })
+                    recurrenceRule.byweekday = byweekday.sorted(by: <)
+                    recurrenceRule.bysetpos = [pos]
+                } else {
+                    let byweekday = ruleValue.components(separatedBy: ",").compactMap({ (string) -> EKWeekday? in
+                        return EKWeekday.weekdayFromSymbol(string)
+                    })
+                    recurrenceRule.byweekday = byweekday.sorted(by: <)
+                }
             }
 
             if ruleName == "BYHOUR" {
@@ -181,8 +205,113 @@ public struct RRule {
 
         return recurrenceRule
     }
-
     public static func stringFromRule(_ rule: RecurrenceRule) -> String {
+        var rruleString = "RRULE:"
+        
+        rruleString = "DTSTART=\(dateFormatter.string(from: rule.startDate as Date)) " + rruleString
+        
+        rruleString += "FREQ=\(rule.frequency.toString());"
+
+        let interval = max(1, rule.interval)
+        rruleString += "INTERVAL=\(interval);"
+
+        rruleString += "WKST=\(rule.firstDayOfWeek.toSymbol());"
+        if let endDate = rule.recurrenceEnd?.endDate {
+            rruleString += "UNTIL=\(dateFormatter.string(from: endDate));"
+        } else if let count = rule.recurrenceEnd?.occurrenceCount {
+            rruleString += "COUNT=\(count);"
+        }
+
+        let bysetposStrings = rule.bysetpos.compactMap({ (setpo) -> String? in
+            guard (-366...366 ~= setpo) && (setpo != 0) else {
+                return nil
+            }
+            return String(setpo)
+        })
+//        if bysetposStrings.count > 0 {
+//            rruleString += "BYSETPOS=\(bysetposStrings.joined(separator: ","));"
+//        }
+
+        let byyeardayStrings = rule.byyearday.compactMap({ (yearday) -> String? in
+            guard (-366...366 ~= yearday) && (yearday != 0) else {
+                return nil
+            }
+            return String(yearday)
+        })
+        if byyeardayStrings.count > 0 {
+            rruleString += "BYYEARDAY=\(byyeardayStrings.joined(separator: ","));"
+        }
+
+        let bymonthStrings = rule.bymonth.compactMap({ (month) -> String? in
+            guard 1...12 ~= month else {
+                return nil
+            }
+            return String(month)
+        })
+        if bymonthStrings.count > 0 {
+            rruleString += "BYMONTH=\(bymonthStrings.joined(separator: ","));"
+        }
+
+        let byweeknoStrings = rule.byweekno.compactMap({ (weekno) -> String? in
+            guard (-53...53 ~= weekno) && (weekno != 0) else {
+                return nil
+            }
+            return String(weekno)
+        })
+        if byweeknoStrings.count > 0 {
+            rruleString += "BYWEEKNO=\(byweeknoStrings.joined(separator: ","));"
+        }
+
+        let bymonthdayStrings = rule.bymonthday.compactMap({ (monthday) -> String? in
+            guard (-31...31 ~= monthday) && (monthday != 0) else {
+                return nil
+            }
+            return String(monthday)
+        })
+        if bymonthdayStrings.count > 0 {
+            rruleString += "BYMONTHDAY=\(bymonthdayStrings.joined(separator: ","));"
+        }
+
+        let byweekdaySymbols = rule.byweekday.map({ (weekday) -> String in
+            if bysetposStrings.count > 0 {
+                return weekday.toSymbol(postion: bysetposStrings.first ?? "")
+            } else {
+                return weekday.toSymbol()
+            }
+        })
+        if byweekdaySymbols.count > 0 {
+            rruleString += "BYDAY=\(byweekdaySymbols.joined(separator: ","));"
+        }
+
+        let byhourStrings = rule.byhour.map({ (hour) -> String in
+            return String(hour)
+        })
+        if byhourStrings.count > 0 {
+            rruleString += "BYHOUR=\(byhourStrings.joined(separator: ","));"
+        }
+
+        let byminuteStrings = rule.byminute.map({ (minute) -> String in
+            return String(minute)
+        })
+        if byminuteStrings.count > 0 {
+            rruleString += "BYMINUTE=\(byminuteStrings.joined(separator: ","));"
+        }
+
+        let bysecondStrings = rule.bysecond.map({ (second) -> String in
+            return String(second)
+        })
+        if bysecondStrings.count > 0 {
+            rruleString += "BYSECOND=\(bysecondStrings.joined(separator: ","));"
+        }
+
+        if String(rruleString.suffix(from: rruleString.index(rruleString.endIndex, offsetBy: -1))) == ";" {
+            rruleString.remove(at: rruleString.index(rruleString.endIndex, offsetBy: -1))
+        }
+
+        return rruleString
+    }
+
+    public static func stringFromRuleOldFormat(_ rule: RecurrenceRule) -> String {
         var rruleString = "RRULE:"
 
         rruleString += "FREQ=\(rule.frequency.toString());"
