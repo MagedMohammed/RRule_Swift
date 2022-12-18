@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'RRule_Swift'
-  s.version          = '0.1.0'
+  s.version          = '0.3.0'
   s.summary          = 'Swift rrule library for working with recurrence rules of calendar dates.'
 
 # This description is used to generate tags and improve search results.
